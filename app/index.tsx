@@ -1,4 +1,7 @@
-import { useFetchAllBFStats } from "@/hooks/useFetchData";
+import BF2042Rank from "@/components/BF2042Rank";
+import { FOUNDER, SPECIAL } from "@/constants/Dev";
+import { getImageForRank } from "@/constants/Images";
+import { LoadingImageAnimation, useFetchAllBFStats } from "@/hooks/useFetchData";
 import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
@@ -59,8 +62,12 @@ export default function Home() {
       ) : (
         <>
           {data === null && submittedUsername && (
-            <Text style={styles.loadingText}>Loading...</Text>
-          )}
+            <>
+              <Text style={styles.loadingText}>Loading...</Text>
+              <LoadingImageAnimation />
+            </>
+            )
+          }
 
           {data && data.length === 0 && (
             <Text style={styles.noDataText}>No data</Text>
@@ -70,6 +77,10 @@ export default function Home() {
             <View style={styles.playerHeader}>
               <Image source={{ uri: data[0]?.data?.avatar }} style={styles.headerAvatar} />
               <Text style={styles.playerName}>{data[0]?.data?.userName}</Text>
+              <View style={styles.badgeContainer}>
+                {data[0]?.data?.userName === FOUNDER && <Text style={styles.badge}>Founder</Text>}
+                {data[0]?.data?.userName === SPECIAL && <Text style={styles.badge}>Elite Member</Text>}
+              </View>
             </View>
           )}
 
@@ -79,12 +90,21 @@ export default function Home() {
                 <View key={game} style={styles.card}>
                   <Text style={styles.gameTitle}>{game.toUpperCase()}</Text>
                   {playerData && (
-                    <React.Fragment>
-                      <Image source={{ uri: playerData.rankImg }} style={styles.rankImg} />
-                      {!['bf3', 'bf4', 'bfh'].includes(game) ? 
-                        <Text style={styles.rank}>Rank: {game !== "bf2042" ? playerData.rank : playerData.level}</Text> 
-                        : null}
-                    </React.Fragment>
+                    <>
+                    {game === 'bf2042' ? (
+                      <>
+                      <BF2042Rank rank={Number(playerData.level)} image={require('../assets/images/bfv/bf2042/BF2042_Level.png')} />
+                      <Text style={styles.rank}>Coming Soon</Text>
+                      </>
+                    ) : (
+                      <>
+                        <Image source={game === 'bfv' ? getImageForRank(Number(playerData.rank)) : { uri: playerData.rankImg }} style={styles.rankImg} />
+                        {!['bf3', 'bf4', 'bfh'].includes(game) ? 
+                          <Text style={styles.rank}>Rank: {game !== "bf2042" ? playerData.rank : playerData.level}</Text> 
+                          : null}
+                      </>
+                    )}
+                    </> 
                   )}
                 </View>
               ))}
@@ -222,5 +242,21 @@ const styles = StyleSheet.create({
   rank: {
     fontSize: 18,
     color: "#aaa",
+  },
+  badge: {
+    fontSize: 12,
+    color: 'gold',
+    fontWeight: '600',
+    backgroundColor: '#333',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  badgeContainer: {
+    position: 'absolute',
+    top: 10,
+    right: 10
   },
 });
