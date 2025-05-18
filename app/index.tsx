@@ -18,13 +18,27 @@ export default function Home() {
   const [username, setUsername] = useState<string>("");
   const [submittedUsername, setSubmittedUsername] = useState<string>("");
   const [showSearch, setShowSearch] = useState<boolean>(true);
+  const [cooldown, setCooldown] = useState<number>(0);
 
   const { data, error, setTrigger, setData } = useFetchAllBFStats("pc", submittedUsername);
 
   const handleSubmit = () => {
+    if (cooldown > 0) return;
+
     setSubmittedUsername(username.trim());
     setTrigger(true);
     setShowSearch(false);
+
+    setCooldown(15);
+    const interval = setInterval(() => {
+      setCooldown(prev => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
   const handleNewSearch = () => {
@@ -55,9 +69,15 @@ export default function Home() {
             onChangeText={setUsername}
             autoCapitalize="none"
           />
-          <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={cooldown > 0}>
             <Text style={styles.buttonText}>Check stats</Text>
           </TouchableOpacity>
+
+          {cooldown > 0 && (
+            <Text style={{ color: '#ff6666', textAlign: 'center', marginTop: 10 }}>
+              Please wait {cooldown}s before next search
+            </Text>
+          )}
         </View>
       ) : (
         <>

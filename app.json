@@ -2,7 +2,7 @@
   "expo": {
     "name": "battlefield-stats",
     "slug": "battlefield-stats",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/bfv/BF5_General_Badge.png",
     "scheme": "battlefieldstats",
@@ -14,7 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/bfv/BF5_General_Badge.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0e0e0e"
       },
       "edgeToEdgeEnabled": true
     },
