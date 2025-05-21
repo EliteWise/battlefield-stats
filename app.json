@@ -2,33 +2,44 @@
   "expo": {
     "name": "battlefield-stats",
     "slug": "battlefield-stats",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/bfv/BF5_General_Badge.png",
+    "icon": "./assets/images/presentation/BF5_Icon.png",
     "scheme": "battlefieldstats",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "versionCode": 4,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/bfv/BF5_General_Badge.png",
+        "foregroundImage": "./assets/images/presentation/BF5_Icon.png",
         "backgroundColor": "#0e0e0e"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.elitewise.battlefieldstats",
+      "permissions": [
+        "INTERNET"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.VIBRATE"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/bfv/BF5_General_Badge.png"
+      "favicon": "./assets/images/presentation/BF5_Icon.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/bfv/BF5_General_Badge.png",
+          "image": "./assets/images/presentation/BF5_Icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
@@ -37,6 +48,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "191eb208-9d17-40f6-bf91-13e96fd8eb16"
+      }
     }
   }
 }
