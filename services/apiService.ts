@@ -10,7 +10,10 @@ export interface PlayerStats {
 interface FetchDataResponse {
   data: PlayerStats | null;
   game: string;
+  error?: string;
 }
+
+const playerNotFoundError = "Player not found!";
 
 const battlefield_games = ['bf3', 'bf4', 'bfh', 'bfv', 'bf1', 'bf2042'];
 
@@ -24,9 +27,11 @@ export const fetchData = async (platform: string, username: string, game: string
           "User-Agent": "Mozilla/5.0",
         },
       });
+
       if (!response.ok) {
-        throw new Error(`Network response was not ok for ${game}`);
+        return { data: null, game, error: playerNotFoundError };
       }
+
       const jsonData = await response.json();
       return {data: jsonData, game: game};
     } catch (error) {
@@ -39,9 +44,15 @@ export const fetchAllBFStats = async (platform: string, username: string) => {
     const results = [];
 
     for (const bf of battlefield_games) {
-        const result = await fetchData(platform, username, bf);
-        results.push(result);
-        await delay(500);
+      const result = await fetchData(platform, username, bf);
+
+      if (!result.data) {
+        break;
+      }
+
+      results.push(result);
+      await delay(500);
     }
+
     return results;
 }

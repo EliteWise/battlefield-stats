@@ -19,13 +19,22 @@ export default function Home() {
   const [submittedUsername, setSubmittedUsername] = useState<string>("");
   const [showSearch, setShowSearch] = useState<boolean>(true);
   const [cooldown, setCooldown] = useState<number>(0);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const { data, error, setTrigger, setData } = useFetchAllBFStats("pc", submittedUsername);
 
   const handleSubmit = () => {
     if (cooldown > 0) return;
 
-    setSubmittedUsername(username.trim());
+    const trimmedName = username.trim();
+
+    if (trimmedName.length < 3) {
+      setErrorMsg("Username must be at least 3 characters long.");
+      return;
+    }
+
+    setErrorMsg(null);
+    setSubmittedUsername(trimmedName);
     setTrigger(true);
     setShowSearch(false);
 
@@ -63,10 +72,13 @@ export default function Home() {
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.input}
-            placeholder="Enter your username"
+            placeholder="Enter your player name"
             placeholderTextColor="#777"
             value={username}
-            onChangeText={setUsername}
+            onChangeText={(name) => {
+              setUsername(name);
+              if (errorMsg) setErrorMsg(null);
+            }}
             autoCapitalize="none"
           />
           <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={cooldown > 0}>
@@ -74,13 +86,20 @@ export default function Home() {
           </TouchableOpacity>
 
           {cooldown > 0 && (
-            <Text style={{ color: '#ff6666', textAlign: 'center', marginTop: 10 }}>
+            <Text style={styles.errorMsg}>
               Please wait {cooldown}s before next search
+            </Text>
+          )}
+
+          {errorMsg && (
+            <Text style={styles.errorMsg}>
+              {errorMsg}
             </Text>
           )}
         </View>
       ) : (
-        <>
+        !showSearch && !error && (
+          <>
           {data === null && submittedUsername && (
             <>
               <Text style={styles.loadingText}>Loading...</Text>
@@ -90,7 +109,7 @@ export default function Home() {
           }
 
           {data && data.length === 0 && (
-            <Text style={styles.noDataText}>No data</Text>
+            <Text style={styles.errorMsg}>This player name doesn't exist.</Text>
           )}
 
           {data && data.length > 0 && (
@@ -131,6 +150,7 @@ export default function Home() {
             </View>
           </ScrollView>
         </>
+        )
       )}
     </View>
   );
@@ -204,12 +224,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginTop: 20,
   },
-  noDataText: {
-    color: "#aaa",
-    textAlign: "center",
-    fontSize: 18,
-    marginTop: 20,
-  },
   playerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -279,4 +293,9 @@ const styles = StyleSheet.create({
     top: 10,
     right: 10
   },
+  errorMsg: {
+    color: '#ff6666',
+    textAlign: 'center',
+    marginTop: 10
+  }
 });

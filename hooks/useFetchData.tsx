@@ -12,6 +12,7 @@ export const useFetchAllBFStats = (platform: string, username: string) => {
         if (!trigger) return;
 
         const getData = async () => {
+            setError(null);
             try {
                 const result = await fetchAllBFStats(platform, username);
                 setData(result)
