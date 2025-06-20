@@ -29,7 +29,7 @@ export default function Home() {
     const trimmedName = username.trim();
 
     if (trimmedName.length < 3) {
-      setErrorMsg("Username must be at least 3 characters long.");
+      setErrorMsg("Player name must be at least 3 characters long.");
       return;
     }
 
