@@ -3,6 +3,7 @@ import { FOUNDER, SPECIAL } from "@/constants/Dev";
 import { getImageForRank } from "@/constants/Images";
 import { LoadingImageAnimation, useFetchAllBFStats } from "@/hooks/useFetchData";
 import { Ionicons } from '@expo/vector-icons';
+import * as Font from 'expo-font';
 import React, { useState } from 'react';
 import {
   Image,
@@ -20,6 +21,11 @@ export default function Home() {
   const [showSearch, setShowSearch] = useState<boolean>(true);
   const [cooldown, setCooldown] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [textWidth, setTextWidth] = useState(0);
+
+  Font.useFonts({
+    ...Ionicons.font
+  });
 
   const { data, error, setTrigger, setData } = useFetchAllBFStats("pc", submittedUsername);
 
@@ -63,7 +69,7 @@ export default function Home() {
         <Text style={styles.title}>Battlefield Stats</Text>
         {!showSearch && (
           <TouchableOpacity style={styles.searchButton} onPress={handleNewSearch}>
-            <Ionicons name="search" size={24} color="#00FFFF" />
+            <Ionicons name="search" size={24} color="#f1dfd2" />
           </TouchableOpacity>
         )}
       </View>
@@ -102,7 +108,6 @@ export default function Home() {
           <>
           {data === null && submittedUsername && (
             <>
-              <Text style={styles.loadingText}>Loading...</Text>
               <LoadingImageAnimation />
             </>
             )
@@ -152,6 +157,13 @@ export default function Home() {
         </>
         )
       )}
+      {(showSearch && 
+      <View style={styles.vLinesContainer}>
+        <Text onLayout={e => setTextWidth(e.nativeEvent.layout.width)} style={[styles.motto, { left: '50%', opacity: textWidth === 0 ? 0 : 0.6, transform: [{ translateX: -textWidth / 2 }, { translateY: 150 }] }]}>Only in Battlefield</Text>
+        <View style={styles.vLineLeft} />
+        <View style={styles.vLineRight} />
+      </View>
+      )}
     </View>
   );
 }
@@ -159,9 +171,10 @@ export default function Home() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0e0e0e",
+    backgroundColor: "#46444e",
     paddingTop: 60,
     paddingHorizontal: 20,
+    position: 'relative'
   },
   header: {
     flexDirection: 'row',
@@ -171,7 +184,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   title: {
-    color: "#00FFFF",
+    color: "#fea85d",
     fontSize: 28,
     fontWeight: "bold",
     letterSpacing: 1.2,
@@ -183,43 +196,43 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#1a1a1b',
+    backgroundColor: '#3e3c45',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#00FFFF',
+    borderColor: '#fea85d',
   },
   searchContainer: {
     marginBottom: 20,
   },
   input: {
     height: 50,
-    borderColor: "#333",
+    borderColor: "#5a5961",
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 15,
-    backgroundColor: "#1c1c1c",
-    color: "#fff",
+    backgroundColor: "#3e3c45",
+    color: "#f1dfd2",
     fontSize: 16,
     marginBottom: 15,
   },
   button: {
-    backgroundColor: "#00FFFF",
+    backgroundColor: "#fea85d",
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
-    shadowColor: "#00FFFF",
+    shadowColor: "#fea85d",
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
+    shadowOpacity: 0.4,
     shadowRadius: 10,
   },
   buttonText: {
-    color: "#0e0e0e",
+    color: "#1a1a1b",
     fontWeight: "bold",
     fontSize: 16,
   },
   loadingText: {
-    color: "#00FFFF",
+    color: "#f8d5b8",
     textAlign: "center",
     fontSize: 18,
     marginTop: 20,
@@ -230,7 +243,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 15,
     marginBottom: 20,
-    backgroundColor: '#1a1a1b',
+    backgroundColor: '#3e3c45',
     borderRadius: 12,
   },
   headerAvatar: {
@@ -239,11 +252,11 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginRight: 15,
     borderWidth: 2,
-    borderColor: '#00FFFF',
+    borderColor: '#f8d5b8',
   },
   playerName: {
     fontSize: 24,
-    color: '#fff',
+    color: '#f1dfd2',
     fontWeight: 'bold',
   },
   grid: {
@@ -253,17 +266,17 @@ const styles = StyleSheet.create({
   },
   card: {
     alignItems: "center",
-    backgroundColor: "#1a1a1b",
+    backgroundColor: "#3e3c45",
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#00FFFF",
-    shadowOpacity: 0.2,
+    shadowColor: "#fea85d",
+    shadowOpacity: 0.1,
     shadowRadius: 10,
     marginBottom: 20,
     width: "48%"
   },
   gameTitle: {
-    color: "#00FFFF",
+    color: "#fea85d",
     fontWeight: "bold",
     marginBottom: 10,
     fontSize: 16,
@@ -275,13 +288,13 @@ const styles = StyleSheet.create({
   },
   rank: {
     fontSize: 18,
-    color: "#aaa",
+    color: "#f1dfd2",
   },
   badge: {
     fontSize: 12,
-    color: 'gold',
+    color: '#fea85d',
     fontWeight: '600',
-    backgroundColor: '#333',
+    backgroundColor: '#2e2d32',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -294,8 +307,47 @@ const styles = StyleSheet.create({
     right: 10
   },
   errorMsg: {
-    color: '#ff6666',
+    color: '#ff9999',
     textAlign: 'center',
     marginTop: 10
+  },
+  vLinesContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+  },
+  vLineLeft: {
+    position: 'absolute',
+    width: 3,
+    height: '107.2%',
+    backgroundColor: '#fea85d',
+    transform: [{ rotate: '-30deg' }],
+    top: 0,
+    left: '-10%',
+    opacity: 0.1,
+  },
+  vLineRight: {
+    position: 'absolute',
+    width: 3,
+    height: '107.2%',
+    backgroundColor: '#fea85d',
+    transform: [{ rotate: '30deg' }],
+    right: '-10%',
+    top: 0,
+    opacity: 0.1,
+  },
+  motto: {
+    position: 'absolute',
+    top: '50%',
+    textAlign: 'center',
+    fontSize: 18,
+    color: '#f1dfd2',
+    fontStyle: 'italic',
+    opacity: 0.1,
+    letterSpacing: 1,
   }
 });
+

@@ -7,7 +7,7 @@
     "icon": "./assets/images/presentation/BF5_Icon_1024.png",
     "scheme": "battlefieldstats",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -15,7 +15,7 @@
       "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/presentation/BF5_Icon_1024.png",
-        "backgroundColor": "#2c3e50"
+        "backgroundColor": "#46444e"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.elitewise.battlefieldstats",
@@ -39,7 +39,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/presentation/BF5_Icon.png",
+          "image": "./assets/images/presentation/BF5_App_Icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#0e0e0e"
