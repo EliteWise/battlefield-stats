@@ -22,12 +22,14 @@ export default function Home() {
   const [cooldown, setCooldown] = useState<number>(0);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [textWidth, setTextWidth] = useState(0);
+  const [platform, setPlatform] = useState<"PC" | "Xbox" | "PS">("PC");
+  const [showPlatformOptions, setShowPlatformOptions] = useState(false);
 
   Font.useFonts({
     ...Ionicons.font
   });
 
-  const { data, error, setTrigger, setData } = useFetchAllBFStats("pc", submittedUsername);
+  const { data, error, setTrigger, setData } = useFetchAllBFStats(platform, submittedUsername);
 
   const handleSubmit = () => {
     if (cooldown > 0) return;
@@ -63,6 +65,9 @@ export default function Home() {
     setData(null);
   };
 
+  const firstValidData = data?.find(item => item.data !== null);
+  const player = firstValidData?.data ?? null;
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -76,17 +81,55 @@ export default function Home() {
 
       {showSearch ? (
         <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Enter your player name"
-            placeholderTextColor="#777"
-            value={username}
-            onChangeText={(name) => {
-              setUsername(name);
-              if (errorMsg) setErrorMsg(null);
-            }}
-            autoCapitalize="none"
-          />
+          <View style={styles.searchRow}>
+            <View style={styles.platformDropdownContainer}>
+              <TouchableOpacity
+                onPress={() => setShowPlatformOptions((prev) => !prev)}
+                style={styles.platformSelectorHeader}
+              >
+                <Text style={styles.platformSelectorHeaderText}>{platform.toUpperCase()}</Text>
+              </TouchableOpacity>
+
+              {showPlatformOptions && (
+                <View style={styles.platformOptions}>
+                  {["PC", "Xbox", "PS"].map((p) => (
+                    <TouchableOpacity
+                      key={p}
+                      onPress={() => {
+                        setPlatform(p as "PC" | "Xbox" | "PS");
+                        setShowPlatformOptions(false);
+                      }}
+                      style={[
+                        styles.platformOption,
+                        platform === p && styles.platformOptionActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.platformOptionText,
+                          platform === p && styles.platformOptionTextActive,
+                        ]}
+                      >
+                        {p.toUpperCase()}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your player name"
+              placeholderTextColor="#777"
+              value={username}
+              onChangeText={(name) => {
+                setUsername(name);
+                if (errorMsg) setErrorMsg(null);
+              }}
+              autoCapitalize="none"
+            />
+          </View>
           <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={cooldown > 0}>
             <Text style={styles.buttonText}>Check stats</Text>
           </TouchableOpacity>
@@ -117,13 +160,13 @@ export default function Home() {
             <Text style={styles.errorMsg}>This player name doesn't exist.</Text>
           )}
 
-          {data && data.length > 0 && (
+          {data && data.length > 0 && player && (
             <View style={styles.playerHeader}>
-              <Image source={{ uri: data[0]?.data?.avatar }} style={styles.headerAvatar} />
-              <Text style={styles.playerName}>{data[0]?.data?.userName}</Text>
+              <Image source={{ uri: player.avatar }} style={styles.headerAvatar} />
+              <Text style={styles.playerName}>{player.userName}</Text>
               <View style={styles.badgeContainer}>
-                {data[0]?.data?.userName === FOUNDER && <Text style={styles.badge}>Founder</Text>}
-                {data[0]?.data?.userName === SPECIAL && <Text style={styles.badge}>Elite Member</Text>}
+                {player.userName === FOUNDER && <Text style={styles.badge}>Founder</Text>}
+                {player.userName === SPECIAL && <Text style={styles.badge}>Elite Member</Text>}
               </View>
             </View>
           )}
@@ -191,6 +234,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   searchButton: {
+    flex: 1,
     position: 'absolute',
     right: 0,
     width: 40,
@@ -206,6 +250,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
+    flex: 1,
     height: 50,
     borderColor: "#5a5961",
     borderWidth: 1,
@@ -214,7 +259,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#3e3c45",
     color: "#f1dfd2",
     fontSize: 16,
-    marginBottom: 15,
+    textAlignVertical: "center",
+    paddingVertical: 0,
   },
   button: {
     backgroundColor: "#fea85d",
@@ -348,6 +394,59 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     opacity: 0.1,
     letterSpacing: 1,
-  }
+  },
+  searchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  platformDropdownContainer: {
+    marginRight: 8,
+    width: 70,
+  },
+  platformSelectorHeader: {
+    backgroundColor: "#3e3c45",
+    borderColor: "#5a5961",
+    borderWidth: 1,
+    borderRadius: 10,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 12,
+  },
+  platformSelectorHeaderText: {
+    color: "#f1dfd2",
+    fontWeight: "600",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  platformOptions: {
+    position: "absolute",
+    top: 48,
+    left: 0,
+    width: "100%",
+    backgroundColor: "#3e3c45",
+    borderColor: "#5a5961",
+    borderWidth: 1,
+    borderRadius: 10,
+    overflow: "hidden",
+    zIndex: 2
+  },
+  platformOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+  },
+  platformOptionActive: {
+    backgroundColor: "#fea85d",
+  },
+  platformOptionText: {
+    color: "#f1dfd2",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  platformOptionTextActive: {
+    color: "#1a1a1b",
+    fontWeight: "bold",
+  },
 });
 
