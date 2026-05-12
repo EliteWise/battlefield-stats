@@ -4,8 +4,10 @@ import { getImageForRank } from "@/constants/Images";
 import { LoadingImageAnimation, useFetchAllBFStats } from "@/hooks/useFetchData";
 import { Ionicons } from '@expo/vector-icons';
 import * as Font from 'expo-font';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   ScrollView,
   StyleSheet,
@@ -24,12 +26,13 @@ export default function Home() {
   const [textWidth, setTextWidth] = useState(0);
   const [platform, setPlatform] = useState<"PC" | "Xbox" | "PS">("PC");
   const [showPlatformOptions, setShowPlatformOptions] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   Font.useFonts({
     ...Ionicons.font
   });
 
-  const { data, error, setTrigger, setData } = useFetchAllBFStats(platform, submittedUsername);
+  const { results, playerInfo, isLoading, hasSearched, setTrigger, resetResults } = useFetchAllBFStats(platform, submittedUsername);
 
   const handleSubmit = () => {
     if (cooldown > 0) return;
@@ -42,6 +45,7 @@ export default function Home() {
     }
 
     setErrorMsg(null);
+    setAvatarError(false);
     setSubmittedUsername(trimmedName);
     setTrigger(true);
     setShowSearch(false);
@@ -62,11 +66,10 @@ export default function Home() {
     setShowSearch(true);
     setUsername("");
     setSubmittedUsername("");
-    setData(null);
+    resetResults();
   };
 
-  const firstValidData = data?.find(item => item.data !== null);
-  const player = firstValidData?.data ?? null;
+  const noPlayerFound = hasSearched && !isLoading && playerInfo === null;
 
   return (
     <View style={styles.container}>
@@ -147,65 +150,90 @@ export default function Home() {
           )}
         </View>
       ) : (
-        !showSearch && !error && (
-          <>
-          {data === null && submittedUsername && (
-            <>
-              <LoadingImageAnimation />
-            </>
-            )
-          }
+        <>
+          {isLoading && !playerInfo && <LoadingImageAnimation />}
 
-          {data && data.length === 0 && (
+          {noPlayerFound && (
             <Text style={styles.errorMsg}>This player name doesn't exist.</Text>
           )}
 
-          {data && data.length > 0 && player && (
+          {playerInfo && (
             <View style={styles.playerHeader}>
-              <Image source={{ uri: player.avatar }} style={styles.headerAvatar} />
-              <Text style={styles.playerName}>{player.userName}</Text>
+              {playerInfo.avatar && !avatarError ? (
+                <Image
+                  source={{ uri: playerInfo.avatar }}
+                  style={styles.headerAvatar}
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                <View style={[styles.headerAvatar, styles.headerAvatarFallback]}>
+                  <Ionicons name="person-outline" size={28} color="#f8d5b8" />
+                </View>
+              )}
+              <Text style={styles.playerName}>{playerInfo.userName}</Text>
               <View style={styles.badgeContainer}>
-                {player.userName === FOUNDER && <Text style={styles.badge}>Founder</Text>}
-                {player.userName === SPECIAL && <Text style={styles.badge}>Elite Member</Text>}
+                {playerInfo.userName === FOUNDER && <Text style={styles.badge}>Founder</Text>}
+                {playerInfo.userName === SPECIAL && <Text style={styles.badge}>Elite Member</Text>}
               </View>
             </View>
           )}
 
           <ScrollView style={{ flex: 1 }}>
             <View style={styles.grid}>
-              {data?.map(({ data: playerData, game }) => (
-                <View key={game} style={styles.card}>
+              {results.map(({ game, data, loading, error, rawData }) => (
+                <TouchableOpacity
+                  key={game}
+                  style={styles.card}
+                  onPress={() => (data || game === 'bf6') && playerInfo && router.push({ pathname: '/stats/[game]', params: { game, username: playerInfo?.userName?.toLowerCase() || submittedUsername, platform, nucleusId: playerInfo?.userId ?? '', personaId: playerInfo?.personaId ?? '' } })}
+                  activeOpacity={(data || game === 'bf6') && playerInfo ? 0.7 : 1}
+                >
                   <Text style={styles.gameTitle}>{game.toUpperCase()}</Text>
-                  {playerData && (
+                  {loading ? (
+                    <ActivityIndicator color="#fea85d" style={{ marginTop: 10 }} />
+                  ) : game === 'bf6' ? (
                     <>
-                    {game === 'bf2042' ? (
-                      <>
-                      <BF2042Rank rank={Number(playerData.level)} image={require('../assets/images/bfv/bf2042/BF2042_Level.png')} />
-                      <Text style={styles.rank}>Coming Soon</Text>
-                      </>
-                    ) : (
-                      <>
-                        <Image source={game === 'bfv' ? getImageForRank(Number(playerData.rank)) : { uri: playerData.rankImg }} style={styles.rankImg} />
-                        {!['bf3', 'bf4', 'bfh'].includes(game) ? 
-                          <Text style={styles.rank}>Rank: {game !== "bf2042" ? playerData.rank : playerData.level}</Text> 
-                          : null}
-                      </>
-                    )}
-                    </> 
-                  )}
-                </View>
+                      <Image source={require('../assets/images/bf6/bf6.png')} style={styles.bf6Img} />
+                      {data && (
+                        <>
+                          <Text style={styles.bf6StatValue}>{String(rawData?.kills ?? '?')}</Text>
+                          <Text style={styles.bf6StatLabel}>Kills</Text>
+                        </>
+                      )}
+                      {playerInfo && <Text style={styles.tapHint}>Tap for details</Text>}
+                    </>
+                  ) : data ? (
+                    <>
+                      {game === 'bf2042' ? (
+                        <BF2042Rank rank={Number(data.rank)} image={require('../assets/images/bfv/bf2042/BF2042_Level.png')} />
+                      ) : (
+                        <>
+                          <Image
+                            source={game === 'bfv' ? getImageForRank(Number(data.rank)) : { uri: data.rankImg ?? '' }}
+                            style={styles.rankImg}
+                          />
+                          {!['bf3', 'bf4', 'bfh'].includes(game) &&
+                            <Text style={styles.rank}>Rank: {data.rank}</Text>
+                          }
+                        </>
+                      )}
+                      <Text style={styles.tapHint}>Tap for details</Text>
+                    </>
+                  ) : error === 'Unavailable' ? (
+                    <Text style={styles.unavailableMsg}>Unavailable</Text>
+                  ) : null}
+                </TouchableOpacity>
               ))}
             </View>
           </ScrollView>
         </>
-        )
       )}
-      {(showSearch && 
-      <View style={styles.vLinesContainer}>
-        <Text onLayout={e => setTextWidth(e.nativeEvent.layout.width)} style={[styles.motto, { left: '50%', opacity: textWidth === 0 ? 0 : 0.6, transform: [{ translateX: -textWidth / 2 }, { translateY: 150 }] }]}>Only in Battlefield</Text>
-        <View style={styles.vLineLeft} />
-        <View style={styles.vLineRight} />
-      </View>
+
+      {showSearch && (
+        <View style={styles.vLinesContainer}>
+          <Text onLayout={e => setTextWidth(e.nativeEvent.layout.width)} style={[styles.motto, { left: '50%', opacity: textWidth === 0 ? 0 : 0.6, transform: [{ translateX: -textWidth / 2 }, { translateY: 150 }] }]}>Only in Battlefield</Text>
+          <View style={styles.vLineLeft} />
+          <View style={styles.vLineRight} />
+        </View>
       )}
     </View>
   );
@@ -277,12 +305,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-  loadingText: {
-    color: "#f8d5b8",
-    textAlign: "center",
-    fontSize: 18,
-    marginTop: 20,
-  },
   playerHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -299,6 +321,11 @@ const styles = StyleSheet.create({
     marginRight: 15,
     borderWidth: 2,
     borderColor: '#f8d5b8',
+  },
+  headerAvatarFallback: {
+    backgroundColor: '#2e2d32',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   playerName: {
     fontSize: 24,
@@ -319,7 +346,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
     marginBottom: 20,
-    width: "48%"
+    width: "48%",
+    minHeight: 100,
+    justifyContent: 'flex-start',
   },
   gameTitle: {
     color: "#fea85d",
@@ -335,6 +364,28 @@ const styles = StyleSheet.create({
   rank: {
     fontSize: 18,
     color: "#f1dfd2",
+  },
+  tapHint: {
+    fontSize: 11,
+    color: '#888',
+    marginTop: 8,
+  },
+  unavailableMsg: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
+  bf6StatValue: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#f1dfd2',
+    marginTop: 8,
+  },
+  bf6StatLabel: {
+    fontSize: 12,
+    color: '#aaa',
+    marginTop: 2,
   },
   badge: {
     fontSize: 12,
@@ -448,5 +499,10 @@ const styles = StyleSheet.create({
     color: "#1a1a1b",
     fontWeight: "bold",
   },
+  bf6Img: {
+    width: 80,
+    height: 80,
+    marginBottom: 10,
+    resizeMode: 'contain',
+  },
 });
-

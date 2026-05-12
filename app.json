@@ -2,17 +2,18 @@
   "expo": {
     "name": "Battlefield Stats",
     "slug": "battlefield-stats",
-    "version": "1.3.1",
+    "version": "1.4.0",
     "orientation": "portrait",
     "icon": "./assets/images/presentation/BF5_Icon_1024.png",
     "scheme": "battlefieldstats",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#46444e",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "versionCode": 10,
+      "versionCode": 13,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/presentation/BF5_Icon_1024.png",
         "backgroundColor": "#46444e"
@@ -45,7 +46,18 @@
           "backgroundColor": "#0e0e0e"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "buildArchs": [
+              "arm64-v8a",
+              "x86_64"
+            ]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
